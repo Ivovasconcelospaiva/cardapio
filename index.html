@@ -10,34 +10,67 @@
       font-family: sans-serif;
       padding: 20px;
     }
+
     h1 {
       color: orange;
     }
-    .produto {
-      background: #222;
-      padding: 10px;
+
+    label {
+      display: block;
       margin-bottom: 15px;
-      border-radius: 10px;
     }
+
+    .produto {
+      background: #1a1a1a;
+      padding: 10px;
+      margin-bottom: 8px; /* Menor espaçamento entre produtos */
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(255, 165, 0, 0.2);
+    }
+
+    .produto h3 {
+      margin: 0 0 5px 0;
+    }
+
+    .produto p {
+      margin: 2px 0;
+    }
+
     .preco {
       color: lime;
+      font-weight: bold;
     }
+
     input[type="number"] {
       width: 50px;
+      background: #333;
+      border: 1px solid #555;
+      color: white;
+      padding: 4px;
+      border-radius: 4px;
     }
+
     #total {
-      font-size: 1.5em;
+      font-size: 1.4em;
       color: lime;
-      margin-top: 20px;
+      margin-top: 15px;
+      font-weight: bold;
     }
+
     #btnEnviar {
       background: orange;
       border: none;
-      padding: 10px;
+      padding: 10px 20px;
       color: black;
       cursor: pointer;
       font-weight: bold;
       margin-top: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px orange;
+    }
+
+    #btnEnviar:hover {
+      background: #ffaa00;
     }
   </style>
 </head>
@@ -54,7 +87,7 @@
   <button id="btnEnviar">Enviar Pedido</button>
 
   <script>
-    const url = "https://script.google.com/macros/s/AKfycbzrTLx6q4RLLVL3bE2rnfR37CbBaHpTjDoSMML-zSpYt8f0EMS8r8afg8NRNQrAm93R/exec"; // 🔁 coloque seu link aqui
+    const url = "https://script.google.com/macros/s/AKfycbzrTLx6q4RLLVL3bE2rnfR37CbBaHpTjDoSMML-zSpYt8f0EMS8r8afg8NRNQrAm93R/exec";
 
     fetch(url)
       .then(res => res.json())
@@ -78,7 +111,6 @@
           container.appendChild(div);
         });
 
-        // Atualiza total
         const inputs = document.querySelectorAll(".quantidade");
         inputs.forEach(input => {
           input.addEventListener("input", () => {
@@ -91,7 +123,6 @@
         });
       });
 
-    // Clique em Enviar
     document.getElementById("btnEnviar").addEventListener("click", () => {
       const nome = document.getElementById("nomeCliente").value.trim();
       if (!nome) {
@@ -116,8 +147,33 @@
         return;
       }
 
-      console.log("Pedido:", { nome, itens });
-      alert("Pedido enviado (aqui você pode integrar com planilha).");
+      const pedido = {
+        nome,
+        itens: itens.map(item => ({
+          nome: item.nome,
+          quantidade: item.qtd,
+          preco: Number(item.preco)
+        }))
+      };
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(pedido)
+      })
+      .then(response => response.text())
+      .then(data => {
+        alert("Pedido enviado com sucesso!");
+        document.getElementById("nomeCliente").value = "";
+        document.querySelectorAll(".quantidade").forEach(input => input.value = 0);
+        document.getElementById("total").textContent = "Total: R$ 0,00";
+      })
+      .catch(error => {
+        alert("Erro ao enviar o pedido.");
+        console.error("Erro:", error);
+      });
     });
   </script>
 
