@@ -9,74 +9,60 @@
       color: white;
       font-family: sans-serif;
       padding: 20px;
+      max-width: 500px;
+      margin: auto;
     }
-
     h1 {
       color: orange;
+      margin-bottom: 10px;
     }
-
     label {
       display: block;
       margin-bottom: 15px;
     }
-
     .produto {
-      background: #1a1a1a;
+      background: #222;
       padding: 10px;
-      margin-bottom: 8px; /* Menor espaçamento entre produtos */
+      margin-bottom: 10px;
       border-radius: 8px;
-      box-shadow: 0 0 5px rgba(255, 165, 0, 0.2);
+      line-height: 1.4em;
     }
-
     .produto h3 {
-      margin: 0 0 5px 0;
+      margin: 0 0 4px 0;
     }
-
-    .produto p {
-      margin: 2px 0;
-    }
-
     .preco {
       color: lime;
       font-weight: bold;
     }
-
     input[type="number"] {
-      width: 50px;
-      background: #333;
-      border: 1px solid #555;
-      color: white;
-      padding: 4px;
-      border-radius: 4px;
+      width: 45px;
     }
-
     #total {
       font-size: 1.4em;
       color: lime;
       margin-top: 15px;
       font-weight: bold;
     }
-
     #btnEnviar {
       background: orange;
       border: none;
-      padding: 10px 20px;
+      padding: 10px 16px;
       color: black;
       cursor: pointer;
       font-weight: bold;
-      margin-top: 10px;
-      border-radius: 5px;
-      box-shadow: 0 0 5px orange;
+      border-radius: 6px;
+      margin-top: 15px;
+      transition: background 0.2s;
     }
-
     #btnEnviar:hover {
-      background: #ffaa00;
+      background: #ffb347;
     }
   </style>
 </head>
 <body>
 
   <h1>Cardápio Digital</h1>
+
   <label>Nome do Cliente:
     <input type="text" id="nomeCliente" placeholder="Digite seu nome">
   </label>
@@ -87,8 +73,9 @@
   <button id="btnEnviar">Enviar Pedido</button>
 
   <script>
-    const url = "https://script.google.com/macros/s/AKfycbzrTLx6q4RLLVL3bE2rnfR37CbBaHpTjDoSMML-zSpYt8f0EMS8r8afg8NRNQrAm93R/exec";
+    const url = "https://script.google.com/macros/s/SEU_LINK_AQUI/exec"; // 🔁 Substitua pelo link do seu Apps Script
 
+    // Carregar produtos
     fetch(url)
       .then(res => res.json())
       .then(produtos => {
@@ -97,7 +84,6 @@
         produtos.forEach(produto => {
           const div = document.createElement("div");
           div.className = "produto";
-
           div.innerHTML = `
             <h3>${produto.Nome}</h3>
             <p>${produto.Descricao}</p>
@@ -107,10 +93,10 @@
                         data-nome="${produto.Nome}"
                         class="quantidade">
           `;
-
           container.appendChild(div);
         });
 
+        // Atualiza o total automaticamente
         const inputs = document.querySelectorAll(".quantidade");
         inputs.forEach(input => {
           input.addEventListener("input", () => {
@@ -123,6 +109,7 @@
         });
       });
 
+    // Enviar pedido
     document.getElementById("btnEnviar").addEventListener("click", () => {
       const nome = document.getElementById("nomeCliente").value.trim();
       if (!nome) {
@@ -136,8 +123,8 @@
         if (qtd > 0) {
           itens.push({
             nome: input.dataset.nome,
-            qtd,
-            preco: input.dataset.preco
+            quantidade: qtd,
+            preco: Number(input.dataset.preco)
           });
         }
       });
@@ -147,32 +134,26 @@
         return;
       }
 
-      const pedido = {
-        nome,
-        itens: itens.map(item => ({
-          nome: item.nome,
-          quantidade: item.qtd,
-          preco: Number(item.preco)
-        }))
-      };
-
       fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(pedido)
+        body: JSON.stringify({ nome, itens })
       })
-      .then(response => response.text())
-      .then(data => {
+      .then(res => {
+        if (!res.ok) throw new Error("Erro ao enviar.");
+        return res.text();
+      })
+      .then(msg => {
         alert("Pedido enviado com sucesso!");
         document.getElementById("nomeCliente").value = "";
         document.querySelectorAll(".quantidade").forEach(input => input.value = 0);
         document.getElementById("total").textContent = "Total: R$ 0,00";
       })
-      .catch(error => {
+      .catch(err => {
+        console.error(err);
         alert("Erro ao enviar o pedido.");
-        console.error("Erro:", error);
       });
     });
   </script>
