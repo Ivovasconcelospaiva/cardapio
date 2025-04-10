@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Cardápio Digital</title>
+  <style>
+    body {
+      background: #111;
+      color: white;
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      color: orange;
+    }
+    .produto {
+      background: #222;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+    }
+    .preco {
+      color: lime;
+    }
+    input[type="number"] {
+      width: 50px;
+    }
+    #total {
+      font-size: 1.5em;
+      color: lime;
+      margin-top: 20px;
+    }
+    #btnEnviar {
+      background: orange;
+      border: none;
+      padding: 10px;
+      color: black;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Cardápio Digital</h1>
+  <label>Nome do Cliente:
+    <input type="text" id="nomeCliente" placeholder="Digite seu nome">
+  </label>
+
+  <div id="produtos-container"></div>
+
+  <div id="total">Total: R$ 0,00</div>
+  <button id="btnEnviar">Enviar Pedido</button>
+
+  <script>
+    const url = "https://script.google.com/macros/s/AKfycbzrTLx6q4RLLVL3bE2rnfR37CbBaHpTjDoSMML-zSpYt8f0EMS8r8afg8NRNQrAm93R/exec"; // 🔁 coloque seu link aqui
+
+    fetch(url)
+      .then(res => res.json())
+      .then(produtos => {
+        const container = document.getElementById("produtos-container");
+
+        produtos.forEach(produto => {
+          const div = document.createElement("div");
+          div.className = "produto";
+
+          div.innerHTML = `
+            <h3>${produto.Nome}</h3>
+            <p>${produto.Descricao}</p>
+            <p class="preco">R$ ${produto.Preco}</p>
+            Qtd: <input type="number" min="0" value="0"
+                        data-preco="${produto.Preco}" 
+                        data-nome="${produto.Nome}"
+                        class="quantidade">
+          `;
+
+          container.appendChild(div);
+        });
+
+        // Atualiza total
+        const inputs = document.querySelectorAll(".quantidade");
+        inputs.forEach(input => {
+          input.addEventListener("input", () => {
+            let total = 0;
+            inputs.forEach(inp => {
+              total += Number(inp.value) * Number(inp.dataset.preco);
+            });
+            document.getElementById("total").textContent = `Total: R$ ${total.toFixed(2).replace(".", ",")}`;
+          });
+        });
+      });
+
+    // Clique em Enviar
+    document.getElementById("btnEnviar").addEventListener("click", () => {
+      const nome = document.getElementById("nomeCliente").value.trim();
+      if (!nome) {
+        alert("Digite o nome do cliente.");
+        return;
+      }
+
+      const itens = [];
+      document.querySelectorAll(".quantidade").forEach(input => {
+        const qtd = parseInt(input.value);
+        if (qtd > 0) {
+          itens.push({
+            nome: input.dataset.nome,
+            qtd,
+            preco: input.dataset.preco
+          });
+        }
+      });
+
+      if (itens.length === 0) {
+        alert("Adicione pelo menos um item.");
+        return;
+      }
+
+      console.log("Pedido:", { nome, itens });
+      alert("Pedido enviado (aqui você pode integrar com planilha).");
+    });
+  </script>
+
+</body>
+</html>
